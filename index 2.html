@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HERO — Interview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa, #e8eef5, #dfe9f3);
+    background-size: 400% 400%;
+    animation: bgShift 18s ease infinite;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  @keyframes bgShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  h1 {
+    margin-bottom: 20px;
+    font-size: 2rem;
+    background: linear-gradient(90deg, #4facfe, #00c6fb, #a18cd1, #fbc2eb);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradientText 5s ease infinite;
+    font-weight: 800;
+    text-align: center;
+    transition: opacity 0.3s;
+  }
+
+  @keyframes gradientText {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  #menuControls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    align-items: center;
+  }
+
+  #langBtn {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: 2px solid #d0dbe8;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #2c3e50;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(120, 150, 190, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #langBtn:hover {
+    transform: translateY(-2px);
+    border-color: #4facfe;
+    color: #1565c0;
+    box-shadow: 0 8px 20px rgba(79, 172, 254, 0.25);
+  }
+
+  #difficultySelection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    max-width: 900px;
+    animation: fadeIn 0.6s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .canvas-btn {
+    padding: 16px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid #d0dbe8;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #2c3e50;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(120, 150, 190, 0.15);
+    animation: popIn 0.5s ease backwards;
+  }
+
+  .canvas-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    border-color: #4facfe;
+    color: #1565c0;
+    box-shadow: 0 12px 28px rgba(79, 172, 254, 0.35);
+  }
+
+  .canvas-btn:active { transform: translateY(-2px) scale(1.02); }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  #workspace {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 620px;
+    animation: fadeIn 0.6s ease;
+  }
+
+  #workspace.active { display: flex; }
+
+  .scene {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e3ebf3;
+    border-radius: 18px;
+    box-shadow: 0 6px 24px rgba(120, 150, 190, 0.15);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: slideDown 0.5s ease;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .silhouette { width: 150px; height: 150px; }
+  .silhouette svg { width: 100%; height: 100%; display: block; }
+
+  .name {
+    font-size: 0.85rem;
+    color: #7a8a9a;
+    margin-top: 6px;
+    font-weight: 600;
+  }
+
+  .dialog {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e3ebf3;
+    border-radius: 18px;
+    box-shadow: 0 6px 24px rgba(120, 150, 190, 0.15);
+    padding: 18px 20px;
+    min-height: 84px;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .speaker {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #4facfe;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  #answers {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .answer-btn {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: left;
+    padding: 13px 16px;
+    border: 2px solid #e3ebf3;
+    border-radius: 12px;
+    background: #f7fafd;
+    color: #2c3e50;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .answer-btn:hover:not(:disabled) {
+    background: #eaf4ff;
+    border-color: #4facfe;
+    color: #1565c0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(79, 172, 254, 0.3);
+  }
+
+  .answer-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .answer-btn.wrong {
+    border-color: #ff6b6b;
+    background: #fff0f0;
+    color: #c0392b;
+  }
+
+  .back-btn {
+    background: linear-gradient(135deg, #ff9a9e, #fecfef);
+    border: none;
+    padding: 11px 20px;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.92rem;
+    box-shadow: 0 4px 14px rgba(255, 154, 158, 0.4);
+    align-self: center;
+    margin-top: 10px;
+  }
+
+  .back-btn:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 10px 26px rgba(255, 154, 158, 0.55);
+  }
+
+  .result {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e3ebf3;
+    border-radius: 18px;
+    box-shadow: 0 6px 24px rgba(120, 150, 190, 0.15);
+    padding: 22px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.35s, transform 0.35s;
+  }
+
+  .result.show { opacity: 1; transform: none; }
+
+  .score {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #4facfe, #a18cd1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 6px;
+  }
+
+  .progress {
+    width: 100%;
+    height: 6px;
+    background: #eef3f8;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4facfe, #00c6fb);
+    transition: width 0.3s ease;
+  }
+
+  #toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: linear-gradient(135deg, #4facfe, #00c6fb);
+    color: #fff;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-weight: 700;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2000;
+    box-shadow: 0 10px 40px rgba(79, 172, 254, 0.5);
+    pointer-events: none;
+  }
+
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  #muteBtn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 2px solid #d0dbe8;
+    background: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    z-index: 3000;
+    box-shadow: 0 4px 12px rgba(120, 150, 190, 0.15);
+    transition: all 0.2s;
+  }
+  #muteBtn:hover { transform: scale(1.06); border-color: #4facfe; }
+</style>
+</head>
+<body>
+
+<h1 id="mainTitle">💼 HERO — Собеседование</h1>
+
+<button id="muteBtn" title="Sound on/off">🔊</button>
+
+<div id="menuControls">
+  <button id="langBtn">🌐 English</button>
+</div>
+
+<div id="difficultySelection"></div>
+
+<div id="workspace">
+  <div class="scene">
+    <div class="silhouette">
+      <svg viewBox="0 0 100 100">
+        <path d="M8 100 C8 66 30 54 50 54 C70 54 92 66 92 100 Z" fill="#1a1a2e"/>
+        <rect x="43" y="44" width="14" height="12" fill="#1a1a2e"/>
+        <circle cx="50" cy="34" r="15" fill="#1a1a2e"/>
+        <path d="M50 54 L45 70 L50 76 L55 70 Z" fill="#e63946"/>
+        <path d="M47 52 L53 52 L50 58 Z" fill="#c1121f"/>
+      </svg>
+    </div>
+    <div class="name" id="hrName">HR-менеджер · компания HERO</div>
+  </div>
+
+  <div class="progress">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="dialog">
+    <div class="speaker" id="speaker">HR</div>
+    <div id="text">...</div>
+  </div>
+
+  <div id="answers"></div>
+  <div class="result" id="result"></div>
+
+  <button class="back-btn" id="backBtn">↩ К выбору сложности</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function() {
+  // ===================== ЛОКАЛИЗАЦИЯ =====================
+  const translations = {
+    ru: {
+      title: "💼 HERO — Собеседование",
+      hrName: "HR-менеджер · компания HERO",
+      langBtn: "🌐 English",
+      difficulties: ["Легкий", "Нормальный", "Сложнее", "Сложный", "Безумный"],
+      back: "↩ К выбору сложности",
+      opening: { q: 'Это компания HERO. Что вас интересует?', answers: ['Я хочу устроиться на работу', 'Дайте двойной чизбургер', 'Это же Roblox?'], correct: 0 },
+      pool: [
+        { q: 'Почему вы хотите работать именно у нас?', a: ['Мне близки ваши ценности', 'Мне нужны деньги', 'Я здесь случайно', 'Меня прислали'] },
+        { q: 'Кем вы видите себя через 5 лет?', a: ['Руководителем отдела', 'Вашим начальником', 'Дома', 'Не планирую так далеко'] },
+        { q: 'Ваша главная слабая сторона?', a: ['Иногда слишком ответственный', 'Я не умею работать', 'Опаздываю на всё', 'Слабостей нет'] },
+        { q: 'Что вы сделаете, если начальник ошибается?', a: ['Тактично укажу на ошибку', 'Промолчу', 'Сниму на видео', 'Уволю его'] },
+        { q: 'Как вы справляетесь со стрессом?', a: ['Делаю паузу и планирую', 'Кричу в подушку', 'Ем', 'Не справляюсь'] },
+        { q: 'Готовы ли вы к переработкам?', a: ['В разумных пределах', 'Я живу на работе', 'Нет', 'А что такое работа?'] },
+        { q: 'Расскажите о вашем последнем проекте.', a: ['Сделал сайт и довёл до релиза', 'Начал и бросил', 'Это было в другой жизни', 'Проект — громко сказано'] },
+        { q: 'Как вы работаете в команде?', a: ['Слушаю и предлагаю решения', 'Командую', 'Молчу', 'Работаю лучше один'] },
+        { q: 'Что для вас важно в рабочем месте?', a: ['Уважение и рост', 'Кофемашина', 'Тишина', 'Чтобы не трогали'] },
+        { q: 'Опишите себя одним словом.', a: ['Надёжный', 'Уставший', 'Загадочный', 'Голодный'] },
+        { q: 'Почему мы должны взять именно вас?', a: ['Я принесу пользу', 'Я хотя бы пришёл', 'Другие отказались', 'Вы не должны'] },
+        { q: 'Вы умеете работать с дедлайнами?', a: ['Да, планирую заранее', 'Дедлайн — это состояние души', 'Нет', 'Что такое дедлайн?'] },
+        { q: 'Что вы знаете о нашей компании?', a: ['Вы делаете качественный продукт', 'Вы про чизбургеры?', 'Ничего', 'Вы существуете'] },
+        { q: 'Ваш любимый рабочий инструмент?', a: ['Таск-трекер', 'Кнопка «Сдать»', 'Кофе', 'Ничего'] },
+        { q: 'Как вы реагируете на критику?', a: ['Спокойно и конструктивно', 'Обижаюсь', 'Плачу', 'Критикую в ответ'] },
+        { q: 'Сколько времени вы готовы уделять работе?', a: ['Столько, сколько нужно', '24/7', 'Минимум', 'Я уже устал'] },
+        { q: 'Есть ли у вас вопросы к нам?', a: ['Да, о задачах и команде', 'Когда обед?', 'Нет', 'А вы точно компания?'] },
+        { q: 'Что вы сделаете, если не успеваете с задачей?', a: ['Сообщу заранее', 'Сделаю вид, что всё хорошо', 'Заплачу', 'Ничего'] },
+        { q: 'Ваш идеальный рабочий день?', a: ['Продуктивный и спокойный', 'Короткий', 'Выходной', 'Такого не бывает'] },
+        { q: 'Вы командный игрок?', a: ['Да, умею слушать', 'Я — капитан', 'Нет', 'Что за игра?'] }
+      ],
+      reasons: [
+        'Причина: несоответствие корпоративному духу. Дух у нас строгий.',
+        'Причина: вы слишком похожи на нормального человека.',
+        'Причина: в резюме нет ничего про HERO.',
+        'Причина: HR устал. Он давно устал.',
+        'Причина: вы моргнули не в том порядке.',
+        'Причина: нам нужен был кто-то с другим галстуком.',
+        'Причина: вы ответили правильно. Это подозрительно.',
+        'Причина: у нас вакансия только для тех, кто уже работает.',
+        'Причина: мы не смогли вас прочитать.',
+        'Причина: вы не сказали «я хочу устроиться на работу» с нужной интонацией.'
+      ],
+      finalWin: 'Что ж... добро пожаловать в HERO.',
+      finalLose: 'Мы вам перезвоним. (не перезвоним)',
+      verdictWin: 'Вы приняты',
+      verdictLose: 'Вы не приняты',
+      reasonWinHigh: 'Слишком хорошо. Мы вас немного боимся.',
+      reasonWinMid: 'Добро пожаловать в HERO. Испытательный срок — навсегда.',
+      reasonWinLow: 'Нам нужен хоть кто-то.',
+      statDiff: 'Сложность:',
+      statAnswers: 'Верных ответов:',
+      toastWrong: '❌ Неверно. Попыток: ',
+      toastCopied: 'Скопировано!'
+    },
+    en: {
+      title: "💼 HERO — Interview",
+      hrName: "HR Manager · HERO company",
+      langBtn: "🌐 Русский",
+      difficulties: ["Easy", "Normal", "Harder", "Hard", "Insane"],
+      back: "↩ Back to difficulty",
+      opening: { q: 'This is HERO company. How can I help you?', answers: ['I want to get a job', 'Give me a double cheeseburger', 'Is this Roblox?'], correct: 0 },
+      pool: [
+        { q: 'Why do you want to work with us?', a: ['I share your values', 'I need money', 'I am here by accident', 'I was sent here'] },
+        { q: 'Where do you see yourself in 5 years?', a: ['Department head', 'Your boss', 'At home', 'I don\'t plan that far'] },
+        { q: 'What is your main weakness?', a: ['Sometimes too responsible', 'I don\'t know how to work', 'I am late for everything', 'I have no weaknesses'] },
+        { q: 'What will you do if your boss is wrong?', a: ['Politely point out the mistake', 'Stay silent', 'Record it on video', 'Fire him'] },
+        { q: 'How do you handle stress?', a: ['Pause and plan', 'Scream into a pillow', 'Eat', 'I don\'t handle it'] },
+        { q: 'Are you ready for overtime?', a: ['Within reason', 'I live at work', 'No', 'What is work?'] },
+        { q: 'Tell me about your last project.', a: ['Built a site and shipped it', 'Started and quit', 'That was in another life', 'Project is a strong word'] },
+        { q: 'How do you work in a team?', a: ['Listen and suggest solutions', 'Command', 'Stay silent', 'I work better alone'] },
+        { q: 'What is important to you in a workplace?', a: ['Respect and growth', 'Coffee machine', 'Silence', 'Not to be touched'] },
+        { q: 'Describe yourself in one word.', a: ['Reliable', 'Tired', 'Mysterious', 'Hungry'] },
+        { q: 'Why should we hire you?', a: ['I will bring value', 'At least I showed up', 'Others refused', 'You shouldn\'t'] },
+        { q: 'Can you work with deadlines?', a: ['Yes, I plan ahead', 'Deadline is a state of mind', 'No', 'What is a deadline?'] },
+        { q: 'What do you know about our company?', a: ['You make a quality product', 'Are you about cheeseburgers?', 'Nothing', 'You exist'] },
+        { q: 'What is your favorite work tool?', a: ['Task tracker', 'The "Submit" button', 'Coffee', 'Nothing'] },
+        { q: 'How do you react to criticism?', a: ['Calmly and constructively', 'I get offended', 'I cry', 'I criticize back'] },
+        { q: 'How much time are you willing to give to work?', a: ['As much as needed', '24/7', 'Minimum', 'I am already tired'] },
+        { q: 'Do you have any questions for us?', a: ['Yes, about tasks and team', 'When is lunch?', 'No', 'Are you a real company?'] },
+        { q: 'What will you do if you are running late on a task?', a: ['Report in advance', 'Pretend everything is fine', 'Cry', 'Nothing'] },
+        { q: 'Your ideal workday?', a: ['Productive and calm', 'Short', 'A day off', 'Doesn\'t exist'] },
+        { q: 'Are you a team player?', a: ['Yes, I can listen', 'I am the captain', 'No', 'What game?'] }
+      ],
+      reasons: [
+        'Reason: mismatch with corporate spirit. Our spirit is strict.',
+        'Reason: you look too much like a normal person.',
+        'Reason: your resume has nothing about HERO.',
+        'Reason: HR is tired. He has been tired for a long time.',
+        'Reason: you blinked in the wrong order.',
+        'Reason: we needed someone with a different tie.',
+        'Reason: you answered correctly. That is suspicious.',
+        'Reason: our vacancy is only for those who already work.',
+        'Reason: we could not read you.',
+        'Reason: you didn\'t say "I want to get a job" with the right intonation.'
+      ],
+      finalWin: 'Well... welcome to HERO.',
+      finalLose: 'We will call you back. (we won\'t)',
+      verdictWin: 'You are hired',
+      verdictLose: 'You are not hired',
+      reasonWinHigh: 'Too good. We are a bit afraid of you.',
+      reasonWinMid: 'Welcome to HERO. Probation — forever.',
+      reasonWinLow: 'We need at least someone.',
+      statDiff: 'Difficulty:',
+      statAnswers: 'Correct answers:',
+      toastWrong: '❌ Wrong. Attempts left: ',
+      toastCopied: 'Copied!'
+    }
+  };
+
+  let lang = 'ru';
+  let t = translations[lang];
+
+  // ===================== АУДИО ЯДРО =====================
+  let actx = null;
+  let masterGain = null;
+  let muted = false;
+
+  function initAudio() {
+    if (!actx) {
+      try {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = actx.createGain();
+        masterGain.gain.value = muted ? 0 : 1;
+        masterGain.connect(actx.destination);
+      } catch(e) { console.error('Web Audio API not supported'); }
+    }
+    if (actx && actx.state === 'suspended') actx.resume();
+  }
+
+  function beep(freq, dur, type, vol, dest) {
+    if (!actx || muted) return;
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = type || 'square';
+    o.frequency.value = freq;
+    g.gain.value = vol || 0.04;
+    o.connect(g); g.connect(dest || masterGain);
+    const t = actx.currentTime;
+    o.start(t);
+    g.gain.setValueAtTime(g.gain.value, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.stop(t + dur + 0.02);
+  }
+
+  // ===================== ПИКСЕЛЬНЫЕ ГОЛОСА (ПУЖИК СТИЛЬ) =====================
+  function playPixelVoice(text, voiceType) {
+    if (!actx || muted) return;
+    const syllables = Math.max(3, Math.min(12, Math.floor(text.length / 2.5)));
+    let baseFreq = voiceType === 'player' ? 170 : 140;
+    let pitchSpread = voiceType === 'player' ? 40 : 30;
+    let rate = 0.12;
+    const now = actx.currentTime;
+    
+    for (let i = 0; i < syllables; i++) {
+      const timeOffset = now + i * 0.08;
+      const o = actx.createOscillator();
+      const g = actx.createGain();
+      o.type = 'sawtooth';
+      const freq = baseFreq + (Math.random() * pitchSpread - pitchSpread/2);
+      o.frequency.setValueAtTime(freq, timeOffset);
+      if (voiceType === 'hr' && i === syllables - 1) {
+        o.frequency.exponentialRampToValueAtTime(freq * 0.8, timeOffset + rate);
+      }
+      g.gain.setValueAtTime(0, timeOffset);
+      g.gain.linearRampToValueAtTime(0.04, timeOffset + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, timeOffset + rate);
+      o.connect(g); g.connect(masterGain);
+      o.start(timeOffset); o.stop(timeOffset + rate + 0.05);
+    }
+  }
+
+  function speakHR(text) { playPixelVoice(text, 'hr'); }
+  function speakPlayer(text) { playPixelVoice(text, 'player'); }
+  
+  function soundSuccess() {
+    initAudio();
+    [523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, 0.09, 'square', 0.05), i * 90));
+  }
+  
+  function soundFail() {
+    initAudio();
+    [200, 150, 110].forEach((f, i) => setTimeout(() => beep(f, 0.12, 'sawtooth', 0.05), i * 110));
+  }
+
+  // ===================== МУЗЫКА =====================
+  let musicOn = false;
+  let currentMusicTheme = null;
+  let musicTimer = null;
+  let musicBus = null;
+  let musicNodes = [];
+
+  const THEMES = {
+    menu: { chords: [[261.63, 329.63, 392.00], [220.00, 261.63, 329.63], [174.61, 220.00, 261.63], [196.00, 246.94, 293.66]], chordDur: 4.0, bassFreq: 65.41, bassVol: 0.03, chordVol: 0.06, filterFreq: 1100, dropChance: 0.6, dropVol: 0.035, wave: 'sine' },
+    easy: { chords: [[261.63, 329.63, 392.00], [246.94, 293.66, 349.23], [220.00, 261.63, 329.63], [174.61, 220.00, 261.63]], chordDur: 3.4, bassFreq: 73.42, bassVol: 0.03, chordVol: 0.07, filterFreq: 1300, dropChance: 0.6, dropVol: 0.04, wave: 'sine' },
+    normal: { chords: [[293.66, 349.23, 440.00], [246.94, 293.66, 369.99], [220.00, 277.18, 329.63], [196.00, 246.94, 293.66]], chordDur: 3.0, bassFreq: 82.41, bassVol: 0.035, chordVol: 0.07, filterFreq: 1400, dropChance: 0.55, dropVol: 0.04, wave: 'sine' },
+    harder: { chords: [[311.13, 369.99, 466.16], [277.18, 329.63, 415.30], [246.94, 311.13, 369.99], [220.00, 261.63, 329.63]], chordDur: 2.6, bassFreq: 92.50, bassVol: 0.04, chordVol: 0.075, filterFreq: 1600, dropChance: 0.5, dropVol: 0.045, wave: 'triangle' },
+    hard: { chords: [[329.63, 415.30, 493.88], [293.66, 349.23, 440.00], [261.63, 311.13, 392.00], [246.94, 293.66, 349.23]], chordDur: 2.2, bassFreq: 98.00, bassVol: 0.05, chordVol: 0.08, filterFreq: 1800, dropChance: 0.45, dropVol: 0.05, wave: 'triangle' },
+    insane: { chords: [[349.23, 440.00, 523.25], [311.13, 392.00, 466.16], [277.18, 349.23, 415.30], [261.63, 329.63, 392.00]], chordDur: 1.8, bassFreq: 110.00, bassVol: 0.06, chordVol: 0.085, filterFreq: 2200, dropChance: 0.4, dropVol: 0.06, wave: 'sawtooth' }
+  };
+
+  function stopMusic() {
+    musicOn = false;
+    currentMusicTheme = null;
+    if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
+    musicNodes.forEach(n => {
+      try { n.stop && n.stop(); } catch(e) {}
+      try { n.disconnect && n.disconnect(); } catch(e) {}
+    });
+    musicNodes = [];
+    if (musicBus) {
+      try { musicBus.disconnect(); } catch(e) {}
+      musicBus = null;
+    }
+  }
+
+  function startMusic(themeName) {
+    initAudio();
+    if (!actx) return;
+    if (musicOn && currentMusicTheme === themeName) return;
+    stopMusic();
+    musicOn = true;
+    currentMusicTheme = themeName;
+    const theme = THEMES[themeName];
+    if (!theme) return;
+
+    musicBus = actx.createGain();
+    musicBus.gain.value = 0;
+    musicBus.connect(masterGain);
+    musicBus.gain.linearRampToValueAtTime(1, actx.currentTime + 1.5);
+
+    const filter = actx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = theme.filterFreq;
+    filter.Q.value = 0.7;
+    filter.connect(musicBus);
+
+    const bassOsc = actx.createOscillator();
+    const bassGain = actx.createGain();
+    bassOsc.type = theme.wave;
+    bassOsc.frequency.value = theme.bassFreq;
+    bassGain.gain.value = theme.bassVol;
+    bassOsc.connect(bassGain); bassGain.connect(musicBus);
+    bassOsc.start();
+    musicNodes.push(bassOsc, bassGain);
+
+    let chordIndex = 0;
+    function playChord(freqs) {
+      if (!musicOn) return;
+      const now = actx.currentTime;
+      freqs.forEach(f => {
+        const o = actx.createOscillator();
+        const g = actx.createGain();
+        o.type = theme.wave;
+        o.frequency.value = f;
+        g.gain.value = 0;
+        o.connect(g); g.connect(filter);
+        o.start(now);
+        g.gain.linearRampToValueAtTime(theme.chordVol, now + 0.8);
+        g.gain.linearRampToValueAtTime(0.0, now + theme.chordDur - 0.2);
+        o.stop(now + theme.chordDur + 0.1);
+      });
+    }
+    function nextChord() {
+      if (!musicOn) return;
+      playChord(theme.chords[chordIndex % theme.chords.length]);
+      chordIndex++;
+      musicTimer = setTimeout(nextChord, theme.chordDur * 1000);
+    }
+    nextChord();
+
+    const drops = [523.25, 659.25, 783.99, 880.00, 1046.50, 1174.66];
+    let dropTimer = null;
+    function playDrop() {
+      if (!musicOn) return;
+      if (Math.random() < theme.dropChance) {
+        const f = drops[Math.floor(Math.random() * drops.length)];
+        const o = actx.createOscillator();
+        const g = actx.createGain();
+        o.type = 'sine';
+        o.frequency.value = f;
+        g.gain.value = 0;
+        o.connect(g); g.connect(filter);
+        const now = actx.currentTime;
+        o.start(now);
+        g.gain.linearRampToValueAtTime(theme.dropVol, now + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+        o.stop(now + 0.8);
+      }
+      dropTimer = setTimeout(playDrop, 2000 + Math.random() * 3000);
+    }
+    setTimeout(playDrop, 1200);
+  }
+
+  // ===================== MUTE =====================
+  const muteBtn = document.getElementById('muteBtn');
+  muteBtn.addEventListener('click', () => {
+    muted = !muted;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+    if (masterGain && actx) {
+      masterGain.gain.linearRampToValueAtTime(muted ? 0 : 1, actx.currentTime + 0.2);
+    }
+  });
+
+  // ===================== ЛОГИКА ИГРЫ =====================
+  const DIFFICULTIES = [
+    { id: 'easy',    mistakes: 2, questions: 5, lieChance: 0.00 },
+    { id: 'normal',  mistakes: 1, questions: 6, lieChance: 0.05 },
+    { id: 'harder',  mistakes: 1, questions: 7, lieChance: 0.12 },
+    { id: 'hard',    mistakes: 0, questions: 8, lieChance: 0.20 },
+    { id: 'insane',  mistakes: 0, questions: 8, lieChance: 0.35 }
+  ];
+
+  const selectionEl = document.getElementById('difficultySelection');
+  const workspaceEl = document.getElementById('workspace');
+  const speakerEl = document.getElementById('speaker');
+  const textEl = document.getElementById('text');
+  const answersEl = document.getElementById('answers');
+  const resultEl = document.getElementById('result');
+  const progressFill = document.getElementById('progressFill');
+  const toastEl = document.getElementById('toast');
+  const backBtn = document.getElementById('backBtn');
+  const mainTitle = document.getElementById('mainTitle');
+  const hrNameEl = document.getElementById('hrName');
+  const langBtn = document.getElementById('langBtn');
+
+  function renderMenu() {
+    mainTitle.textContent = t.title;
+    hrNameEl.textContent = t.hrName;
+    langBtn.textContent = t.langBtn;
+    backBtn.textContent = t.back;
+
+    selectionEl.innerHTML = '';
+    DIFFICULTIES.forEach((d, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'canvas-btn';
+      btn.textContent = t.difficulties[i];
+      btn.style.animationDelay = (i * 0.05) + 's';
+      btn.addEventListener('click', () => {
+        initAudio();
+        startMusic(d.id);
+        startGame(d);
+      });
+      selectionEl.appendChild(btn);
+    });
+  }
+
+  // Инициализация меню
+  renderMenu();
+
+  langBtn.addEventListener('click', () => {
+    lang = lang === 'ru' ? 'en' : 'ru';
+    t = translations[lang];
+    document.documentElement.lang = lang;
+    renderMenu();
+  });
+
+  // Включаем музыку меню при первом клике
+  window.addEventListener('pointerdown', function startMenu() {
+    initAudio();
+    if (!musicOn) startMusic('menu');
+    window.removeEventListener('pointerdown', startMenu);
+  });
+
+  let state = {};
+
+  function startGame(diff) {
+    selectionEl.style.display = 'none';
+    document.getElementById('menuControls').style.display = 'none';
+    workspaceEl.classList.add('active');
+    resultEl.classList.remove('show');
+    resultEl.innerHTML = '';
+
+    state = {
+      diff: diff,
+      mistakesLeft: diff.mistakes,
+      lieChance: diff.lieChance,
+      queue: shuffle(t.pool).slice(0, diff.questions - 1),
+      index: 0,
+      score: 0,
+      total: diff.questions
+    };
+
+    renderQuestion(t.opening.q, t.opening.answers, t.opening.correct);
+    updateProgress(0);
+  }
+
+  function updateProgress(fraction) {
+    progressFill.style.width = Math.min(100, Math.round(fraction * 100)) + '%';
+  }
+
+  function renderQuestion(text, answers, correctIdx) {
+    speakerEl.textContent = 'HR';
+    textEl.textContent = text;
+    speakHR(text);
+
+    answersEl.innerHTML = '';
+    const items = answers.map((a, i) => ({ text: a, ok: i === correctIdx }));
+    const mixed = shuffle(items);
+
+    mixed.forEach(item => {
+      const b = document.createElement('button');
+      b.className = 'answer-btn';
+      b.textContent = item.text;
+      b.addEventListener('click', () => handleAnswer(item, b));
+      answersEl.appendChild(b);
+    });
+  }
+
+  function handleAnswer(item, btn) {
+    speakPlayer(item.text);
+    answersEl.querySelectorAll('button').forEach(x => x.disabled = true);
+
+    if (item.ok) {
+      btn.style.borderColor = '#4facfe';
+      btn.style.background = '#eaf4ff';
+      state.score++;
+      setTimeout(next, 1400);
+    } else {
+      btn.classList.add('wrong');
+      state.mistakesLeft--;
+      if (state.mistakesLeft < 0) {
+        setTimeout(() => endGame(false), 900);
+      } else {
+        showToast(t.toastWrong + state.mistakesLeft);
+        setTimeout(() => {
+          answersEl.querySelectorAll('button').forEach(x => x.disabled = false);
+        }, 700);
+        setTimeout(() => btn.classList.remove('wrong'), 900);
+      }
+    }
+  }
+
+  function next() {
+    if (state.index >= state.queue.length) {
+      return endGame(true);
+    }
+    const q = state.queue[state.index++];
+    updateProgress(state.score / state.total);
+    renderQuestion(q.q, q.a, 0);
+  }
+
+  function endGame(passed) {
+    answersEl.innerHTML = '';
+    updateProgress(1);
+    const pct = Math.round((state.score / state.total) * 100);
+
+    let verdict, reason, finalLine;
+    if (passed) {
+      soundSuccess();
+      if (pct >= 90) { verdict = t.verdictWin; reason = t.reasonWinHigh; }
+      else if (pct >= 70) { verdict = t.verdictWin; reason = t.reasonWinMid; }
+      else { verdict = t.verdictWin; reason = t.reasonWinLow; }
+      finalLine = t.finalWin;
+    } else {
+      soundFail();
+      verdict = t.verdictLose;
+      reason = t.reasons[Math.floor(Math.random() * t.reasons.length)];
+      finalLine = t.finalLose;
+    }
+
+    speakerEl.textContent = 'HR';
+    textEl.textContent = finalLine;
+    speakHR(finalLine);
+
+    resultEl.innerHTML = `
+      <div class="score">${pct}%</div>
+      <div style="color:#4facfe;font-weight:700;font-size:0.85rem;margin-bottom:10px;">${verdict}</div>
+      <div style="margin-bottom:14px;">${reason}</div>
+      <div style="color:#7a8a9a;font-size:0.8rem;">
+        ${t.statDiff} <b>${t.difficulties[DIFFICULTIES.findIndex(d => d.id === state.diff.id)]}</b> · ${t.statAnswers} <b>${state.score}/${state.total}</b>
+      </div>
+    `;
+    resultEl.classList.add('show');
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  backBtn.addEventListener('click', () => {
+    workspaceEl.classList.remove('active');
+    document.getElementById('menuControls').style.display = 'flex';
+    selectionEl.style.display = 'flex';
+    resultEl.classList.remove('show');
+    startMusic('menu');
+  });
+
+  let toastTimer;
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+  }
+
+})();
+</script>
+</body>
+</html>
